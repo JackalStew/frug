@@ -52,4 +52,3 @@ TODO (I mean, I probably won't do it, but these would be nice to have):
  - SCP? Don't really see the point, we have SFTP
  - Different creds for different services (docker compose sucks at recursive bash substitution)
  - Different creds for read and write access
- - Replace the SSH creds CMD with crypt version of the password

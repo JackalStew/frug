@@ -87,7 +87,7 @@ services:
     ports:
         - "2222:22"
     # Format is user:pass:UID
-    command: $DEFAULT_UNAME:$DEFAULT_PASS:1001
+    command: $DEFAULT_UNAME:$DEFAULT_CRYPT_PASS:e:1001
 
 secrets:
   key:

@@ -1,14 +1,20 @@
 # Edit settings to taste
 # This is the IP of your host machine, things might need it
 hostip=CHANGEME
+# Edit these if you don't love hard-coded creds
+default_uname=default_uname
+default_pass=default_pass
+# Change if you don't like my password crypt
+# Note that if you change creds later you'll also need to calculate the new crypt password
+default_crypt_pass=$(echo -n $default_pass | mkpasswd -s -5)
+
+# Probably best not to mess around past here
 
 # Configure docker environment variables.
-# Edit these if you don't love hard-coded creds.
 echo HOST_IP=$hostip > .env
-echo DEFAULT_UNAME=default_uname >> .env
-echo DEFAULT_PASS=default_pass >> .env
-
-# Probably best not to emss around past here
+echo DEFAULT_UNAME=$default_uname >> .env
+echo DEFAULT_PASS=$default_pass >> .env
+echo DEFAULT_CRYPT_PASS=$default_crypt_pass >> .env
 
 # Create directories and sort out permissions
 mkdir r w x secrets
