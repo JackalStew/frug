@@ -1,0 +1,104 @@
+version: "3.7"
+
+services:
+
+  web:
+    image: nginx:1.17
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./r:/var/www/web/r:ro
+      - ./x:/var/www/web/x:ro
+      - ./conf/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    secrets:
+      - key
+      - cert
+      - certkey
+      - sha1cert
+      - sha1certkey
+    # TODO: get rid of this once docker sort themselves out
+    extra_hosts:
+      - "host.docker.internal:$HOST_IP"
+    depends_on:
+      - php
+
+  php:
+    image: php:7.2-fpm
+    volumes:
+      - ./x:/var/www/web/x:ro
+      - ./w:/var/www/web/w:rw
+
+  ftp:
+    image: stilliard/pure-ftpd
+    ports:
+      - "21:21"
+      - "30000-30009:30000-30009"
+    environment:
+      - PUBLICHOST=$HOST_IP
+      - FTP_USER_NAME=$DEFAULT_UNAME
+      - FTP_USER_PASS=$DEFAULT_PASS
+      - FTP_USER_HOME=/home/ftpuser
+    # Note that crypt gubbins have to be in a very specific dir in order to use them, so no docker secrets :(
+    volumes:
+      - ./r:/home/ftpuser/r:ro
+      - ./w:/home/ftpuser/w:rw
+      - ./secrets/dhparams.pem:/etc/ssl/private/pure-ftpd-dhparams.pem:ro
+      - ./secrets/sha1certkey.pem:/etc/ssl/private/pure-ftpd.pem:ro
+
+  # Include TFTP, because why not! Note, firewalls will ruin your day
+  tftp:
+    image: pghalliday/tftp
+    # Overwrite default command to include -c to create new files (https://linux.die.net/man/8/in.tftpd):
+    command: ["-L", "--create", "--secure", "/var/tftpboot"]
+    # I promise this is the correct port.
+    ports:
+      - "69:69/udp"
+    volumes:
+      - ./r:/var/tftpboot/r:ro
+      - ./w:/var/tftpboot/w:rw
+  
+  smb:
+    image: dperson/samba    
+    ports:
+      - "139:139"
+      - "445:445"
+    # Share and user options described here: https://hub.docker.com/r/dperson/samba/
+    environment:
+      #- USER=$DEFAULT_UNAME;$DEFAULT_PASS
+      - SHARE=r;/mnt/r;yes;yes;yes;all;none;;r
+      - SHARE2=w;/mnt/w;yes;no;yes;all;none;;w
+      #- SHARE2=w;/mnt/w;yes;yes;yes;all;none;;w
+    volumes:
+      - ./r:/mnt/r:ro
+      - ./w:/mnt/w:rw
+
+  sftp:
+    image: atmoz/sftp
+    volumes:
+      - ./r:/home/$DEFAULT_UNAME/r:ro
+      - ./w:/home/$DEFAULT_UNAME/w:rw
+      - ./secrets/ssh_rsa:/etc/ssh/ssh_host_rsa_key:ro
+      - ./secrets/ssh_ed25519:/etc/ssh/ssh_host_ed25519_key:ro
+      # Uncomment the following line to enable port forwarding
+      # - ./conf/ssh/enable_tcp_fwd.sh:/etc/sftp.d/enable_tcp_fwd.sh:ro
+    # Keep the 2222 --> 22 forwarding.
+    # Add any other remote ports you may want forwarded and be accessible from localhost
+    ports:
+        - "2222:22"
+    # Format is user:pass:UID
+    command: $DEFAULT_UNAME:$DEFAULT_PASS:1001
+
+secrets:
+  key:
+    file: ./secrets/key.pem
+  cert:
+    file: ./secrets/cert.pem
+  certkey:
+    file: ./secrets/certkey.pem
+  sha1cert:
+    file: ./secrets/sha1cert.pem
+  sha1certkey:
+    file: ./secrets/sha1certkey.pem
+  dhparams:
+    file: ./secrets/dhparams.pem
