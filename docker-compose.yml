@@ -80,8 +80,8 @@ services:
       - ./w:/home/$DEFAULT_UNAME/w:rw
       - ./secrets/ssh_rsa:/etc/ssh/ssh_host_rsa_key:ro
       - ./secrets/ssh_ed25519:/etc/ssh/ssh_host_ed25519_key:ro
-      # Uncomment the following line to enable port forwarding
-      # - ./conf/ssh/enable_tcp_fwd.sh:/etc/sftp.d/enable_tcp_fwd.sh:ro
+      # The following script can be used to reconfigure SSHD config, e.g. for port porwarding
+      - ./conf/ssh/sshd_reconfig.sh:/etc/sftp.d/sshd_reconfig.sh:ro
     # Keep the 2222 --> 22 forwarding.
     # Add any other remote ports you may want forwarded and be accessible from localhost
     ports:

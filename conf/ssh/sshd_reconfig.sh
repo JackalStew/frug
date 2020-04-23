@@ -15,7 +15,9 @@ conf_file_set () {
 }
 
 ssh_conf_file=/etc/ssh/sshd_config
-conf_file_set $ssh_conf_file AllowTcpForwarding yes
-conf_file_set $ssh_conf_file GatewayPorts yes
 
-echo "Port forwarding enabled. IP address is: $(hostname -I)"
+# Uncomment these two to enable port forwarding
+#conf_file_set $ssh_conf_file AllowTcpForwarding yes
+#conf_file_set $ssh_conf_file GatewayPorts yes
+
+echo "SSHD reconfigure script complete. IP address is: $(hostname -I)"
